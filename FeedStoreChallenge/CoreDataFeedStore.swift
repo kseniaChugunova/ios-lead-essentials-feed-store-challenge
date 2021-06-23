@@ -32,13 +32,13 @@ public final class CoreDataFeedStore: FeedStore {
 		context.performAndWait {
 			do {
 				guard let cache = try Cache.find(in: context),
-				      let feedObjects = cache.images?.array else {
+				      let feedObjects = cache.images?.array as? [FeedImage] else {
 					completion(.empty)
 					return
 				}
 
-				let feed = feedObjects.map { ($0 as! FeedImage).local }
-				completion(.found(feed: feed, timestamp: cache.timestamp!))
+				let feed = feedObjects.map { $0.local }
+				completion(.found(feed: feed, timestamp: cache.timestamp))
 			} catch {
 				completion(.failure(error))
 			}

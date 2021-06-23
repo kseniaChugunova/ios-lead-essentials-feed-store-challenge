@@ -15,7 +15,7 @@ extension Cache {
 		return NSFetchRequest<Cache>(entityName: "Cache")
 	}
 
-	@NSManaged public var timestamp: Date?
+	@NSManaged public var timestamp: Date
 	@NSManaged public var images: NSOrderedSet?
 }
 
