@@ -47,40 +47,39 @@ public final class CoreDataFeedStore: FeedStore {
 
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
 		context.performAndWait {
-			deleteCachedFeed { [weak self] error in
-				guard let self = self else {
-					completion(error)
-					return
+			let previousCache = try? Cache.find(in: context)
+
+			do {
+				let dtos = try feed.compactMap { try FeedImage(context: context, local: $0) }
+				let _ = try Cache(context: context, images: dtos, timestamp: timestamp)
+
+				try context.save()
+
+				if let previousCache = previousCache {
+					context.delete(previousCache)
 				}
 
-				if let error = error {
-					completion(error)
-				} else {
-					do {
-						let dtos = try feed.compactMap { try FeedImage(context: self.context, local: $0) }
-						let _ = try Cache(context: self.context, images: dtos, timestamp: timestamp)
-
-						try self.context.save()
-						completion(nil)
-					} catch {
-						self.context.rollback()
-						completion(error)
-					}
-				}
+				completion(nil)
+			} catch {
+				context.rollback()
+				completion(error)
 			}
 		}
 	}
 
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
 		context.performAndWait {
-			let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Cache")
-			let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
-
 			do {
-				try context.execute(deleteRequest)
+				let previousCache = try Cache.find(in: context)
+
+				if let cache = previousCache {
+					context.delete(cache)
+				}
+
 				try context.save()
 				completion(nil)
 			} catch {
+				context.rollback()
 				completion(error)
 			}
 		}
