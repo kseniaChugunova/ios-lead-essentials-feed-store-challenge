@@ -57,6 +57,7 @@ public final class CoreDataFeedStore: FeedStore {
 
 				if let previousCache = previousCache {
 					context.delete(previousCache)
+					try context.save()
 				}
 
 				completion(nil)
