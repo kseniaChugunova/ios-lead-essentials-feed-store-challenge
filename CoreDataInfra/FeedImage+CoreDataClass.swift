@@ -12,6 +12,11 @@ import CoreData
 
 @objc(FeedImage)
 public class FeedImage: NSManagedObject {
+	@objc
+	private override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?) {
+		super.init(entity: entity, insertInto: context)
+	}
+
 	init?(context: NSManagedObjectContext, local: LocalFeedImage) throws {
 		guard let entity = NSEntityDescription.entity(forEntityName: "FeedImage",
 		                                              in: context) else { return nil }
