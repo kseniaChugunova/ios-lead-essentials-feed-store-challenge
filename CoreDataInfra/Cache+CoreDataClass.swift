@@ -11,18 +11,9 @@ import Foundation
 import CoreData
 
 @objc(Cache)
-public class Cache: NSManagedObject {
-	@objc
-	private override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?) {
-		super.init(entity: entity, insertInto: context)
-	}
-
-	init?(context: NSManagedObjectContext, images: [FeedImage], timestamp: Date) throws {
-		guard let entity = NSEntityDescription.entity(forEntityName: "Cache",
-		                                              in: context) else { return nil }
-
-		super.init(entity: entity, insertInto: context)
-
+final class Cache: NSManagedObject {
+	convenience init(context: NSManagedObjectContext, images: [FeedImage], timestamp: Date) {
+		self.init(context: context)
 		self.images = NSOrderedSet(array: images)
 		self.timestamp = timestamp
 	}

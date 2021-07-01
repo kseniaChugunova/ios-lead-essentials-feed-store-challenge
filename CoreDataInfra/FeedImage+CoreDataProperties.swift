@@ -15,14 +15,12 @@ extension FeedImage {
 		return NSFetchRequest<FeedImage>(entityName: "FeedImage")
 	}
 
-	@NSManaged public var id: UUID
-	@NSManaged public var objectDescription: String?
-	@NSManaged public var location: String?
-	@NSManaged public var url: URL
-	@NSManaged public var cache: Cache?
+	@NSManaged var id: UUID
+	@NSManaged var objectDescription: String?
+	@NSManaged var location: String?
+	@NSManaged var url: URL
+	@NSManaged var cache: Cache?
 }
-
-extension FeedImage: Identifiable {}
 
 extension FeedImage {
 	var local: LocalFeedImage {

@@ -29,10 +29,11 @@ public final class CoreDataFeedStore: FeedStore {
 	}
 
 	public func retrieve(completion: @escaping RetrievalCompletion) {
-		context.performAndWait {
+		context.perform { [weak self] in
+			guard let self = self else { return }
 			do {
-				guard let cache = try Cache.find(in: context),
-				      let feedObjects = cache.images?.array as? [FeedImage] else {
+				guard let cache = try Cache.find(in: self.context),
+				      let feedObjects = cache.images.array as? [FeedImage] else {
 					completion(.empty)
 					return
 				}
@@ -46,41 +47,42 @@ public final class CoreDataFeedStore: FeedStore {
 	}
 
 	public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-		context.performAndWait {
-			let previousCache = try? Cache.find(in: context)
+		context.perform { [weak self] in
+			guard let self = self else { return }
+			let previousCache = try? Cache.find(in: self.context)
 
 			do {
-				let dtos = try feed.compactMap { try FeedImage(context: context, local: $0) }
-				let _ = try Cache(context: context, images: dtos, timestamp: timestamp)
-
-				try context.save()
-
 				if let previousCache = previousCache {
-					context.delete(previousCache)
-					try context.save()
+					self.context.delete(previousCache)
 				}
+
+				let dtos = feed.compactMap { FeedImage(context: self.context, local: $0) }
+				let _ = Cache(context: self.context, images: dtos, timestamp: timestamp)
+
+				try self.context.save()
 
 				completion(nil)
 			} catch {
-				context.rollback()
+				self.context.rollback()
 				completion(error)
 			}
 		}
 	}
 
 	public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-		context.performAndWait {
+		context.perform { [weak self] in
+			guard let self = self else { return }
 			do {
-				let previousCache = try Cache.find(in: context)
+				let previousCache = try Cache.find(in: self.context)
 
 				if let cache = previousCache {
-					context.delete(cache)
+					self.context.delete(cache)
+					try self.context.save()
 				}
 
-				try context.save()
 				completion(nil)
 			} catch {
-				context.rollback()
+				self.context.rollback()
 				completion(error)
 			}
 		}
